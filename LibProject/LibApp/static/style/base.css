@@ -1,0 +1,8 @@
+.nav{
+    background-color: navy;
+    color: white; 
+}
+
+.img-fluid{
+    max-height: 15vh;
+}
