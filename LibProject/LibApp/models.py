@@ -6,18 +6,20 @@ class Book(models.Model):
     title = models.CharField(max_length=100)
     author = models.CharField(max_length=100)
     quantity_total = models.IntegerField(default=0)
+    isbn = models.CharField(max_length=13, unique=True)  # Assuming ISBN-13 format
     quantity_available = models.IntegerField(default=0)
 
     def __str__(self):
-        return self.title
+        return f"{self.title} by {self.author}"
     
 class Member(models.Model):
     name = models.CharField(max_length=100)
     email = models.EmailField()
+    member_id = models.CharField(max_length=10, unique=True)
     outstanding_debt = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
     def __str__(self):
-        return self.name
+        return f"{self.name} - {self.member_id}"
     
 class Transaction(models.Model):
     TRANSACTION_TYPES = (
@@ -29,12 +31,13 @@ class Transaction(models.Model):
     transaction_type = models.CharField(max_length=10, choices=TRANSACTION_TYPES)
     transaction_date = models.DateTimeField(auto_now_add=True)
     fee_charged = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    amount_paid = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
     def clean(self):
         super().clean()
         if self.transaction_type == 'return':
             member_outstanding_debt = self.member.outstanding_debt
-            new_outstanding_debt = member_outstanding_debt + self.fee_charged
+            new_outstanding_debt = member_outstanding_debt + (self.fee_charged - self.amount_paid)
             if new_outstanding_debt > 500:
                 raise ValidationError(f"Member's outstanding debt cannot exceed KES 500.")
 

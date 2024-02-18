@@ -1,13 +1,177 @@
 {% extends "partials/base.html" %}
 
-{% block nav %}
+{% block style %}
+<!-- Custom CSS for Collapsible Sidebar -->
+<style>
+    .sidebar {
+        width: 250px;
+        height: 100vh;
+        margin-top: 0;
+        background-color: #f8f9fa;
+        overflow-x: hidden;
+        transition: width 0.3s;
+        display: flex;
+        flex-direction: column; /* Align items vertically */
+    }
+    
+    .sidebar.collapsed {
+        width: 80px;
+        height: auto; /* Adjust height dynamically based on content */
+    }
 
+  .sidebar-container {
+      padding-top: 1rem;
+  }
+
+  .sidebar-header,
+  .sidebar-footer {
+      padding: 0.5rem;
+  }
+
+  .sidebar-header {
+      border-bottom: 1px solid #dee2e6;
+  }
+
+  .sidebar-nav {
+      padding: 0;
+      margin: 0;
+      flex-grow: 1; /* Allow navigation to take up remaining space */
+  }
+
+  .sidenav {
+      list-style-type: none;
+      padding: 0;
+      margin: 0;
+  }
+
+  .sidebar-item {
+      padding: 0.5rem;
+  }
+
+  .sidebar-item-content {
+      display: flex;
+      align-items: center;
+  }
+
+  .sidebar-toggler {
+      cursor: pointer;
+  }
+
+  .sidebar-footer {
+      margin-top: auto; /* Push footer to the bottom */
+  }
+
+  .sidebar-subitem {
+      margin-left: 20px; /* Indent sub-items */
+  }
+</style>
+{% endblock %}
+
+{% block nav %}
+    <!-- The logout form can remain as it is -->
     <form method="post" action="{% url 'logout' %}">
         {% csrf_token %}
         <button class="btn btn-danger ml-auto" style="margin-right: 10px;" type="submit">Logout</button>
     </form>
-
 {% endblock %}
 
 {% block content %}
+<div class="sidebar" role="cdb-sidebar" color="white">
+    <div class="sidebar-container">
+        <div class="sidebar-header">
+            <a class="sidebar-brand">Menu</a>
+            <a id="sidebarToggler" class="sidebar-toggler"><i class="fa fa-bars"></i></a>
+        </div>
+        <div class="sidebar-nav">
+            <div class="sidenav">
+                <div class="accordion" id="booksAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="booksHeading">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#booksCollapse" aria-expanded="true" aria-controls="booksCollapse">
+                                <i class="fa fa-book sidebar-icon sidebar-icon-lg"></i>
+                                <span>Books</span>
+                            </button>
+                        </h2>
+                        <div id="booksCollapse" class="accordion-collapse collapse show" aria-labelledby="booksHeading" data-bs-parent="#booksAccordion">
+                            <div class="accordion-body">
+                                <!-- Sub-items go here -->
+                                <ul class="list-unstyled">
+                                    <li class="sidebar-subitem"><a href="#">New Book</a></li>
+                                    <li class="sidebar-subitem"><a href="#">Search Book</a></li>                                    
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion" id="membersAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="membersHeading">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#membersCollapse" aria-expanded="true" aria-controls="membersCollapse">
+                                <i class="fa fa-user sidebar-icon sidebar-icon-lg"></i>
+                                <span>Members</span>
+                            </button>
+                        </h2>
+                        <div id="membersCollapse" class="accordion-collapse collapse show" aria-labelledby="membersHeading" data-bs-parent="#membersAccordion">
+                            <div class="accordion-body">
+                                <!-- Sub-items go here -->
+                                <ul class="list-unstyled">
+                                    <li class="sidebar-subitem"><a href="#">New Member</a></li>
+                                    <li class="sidebar-subitem"><a href="#">Search Member</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="accordion" id="transactionsAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="transactionsHeading">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#transactionsCollapse" aria-expanded="true" aria-controls="transactionsCollapse">
+                                <i class="fas fa-dollar-sign sidebar-icon"></i>
+                                <span>Transactions</span>
+                            </button>
+                        </h2>
+                        <div id="transactionsCollapse" class="accordion-collapse collapse show" aria-labelledby="transactionsHeading" data-bs-parent="#transactionsAccordion">
+                            <div class="accordion-body">
+                                <!-- Sub-items go here -->
+                                <ul class="list-unstyled">
+                                    <li class="sidebar-subitem"><a href="#">New Transaction</a></li>
+                                    <li class="sidebar-subitem"><a href="#">Search Transaction</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+        <div class="sidebar-footer">
+            <div class="sidebar-item-content">
+                <i class="fas fa-copyright sidebar-icon"></i>
+                <span> 2024 Mwalimu Library</span>
+            </div>
+        </div>
+        
+    </div>
+</div>
 {% endblock %} 
+
+{% block extra_js %}
+<!-- Custom JavaScript for Collapsible Sidebar -->
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        var sidebar = document.querySelector('.sidebar');
+        var sidebarToggler = document.getElementById('sidebarToggler');
+    
+        sidebarToggler.addEventListener('click', function() {
+            sidebar.classList.toggle('collapsed');
+            
+            // Hide sidebar elements except for the header
+            var sidebarElements = document.querySelectorAll('.sidebar-container > *:not(.sidebar-header)');
+            sidebarElements.forEach(function(element) {
+                element.classList.toggle('d-none');
+            });
+        });
+    });
+</script>
+{% endblock %}
