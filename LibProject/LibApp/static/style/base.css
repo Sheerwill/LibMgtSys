@@ -1,8 +1,12 @@
 #my-nav{
-    background-color: #0d6efd;;
+    background-color: #0d6efd;
     color: white; 
 }
 
 .img-fluid{
     max-height: 15vh;
+}
+
+.bg-blue {
+    background-color: #0d6efd;
 }
