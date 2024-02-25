@@ -18,7 +18,7 @@
     <div class="offcanvas-body px-0">
         <ul class="nav nav-pills flex-column mb-sm-auto mb-0 align-items-start" id="menu">
             <li class="nav-item">
-                <a href="#" class="nav-link text-truncate">
+                <a href="{% url 'lib_dashboard' %}" class="nav-link text-truncate">
                     <i class="fs-5 bi-house"></i><span class="ms-1 d-none d-sm-inline">Home</span>
                 </a>
             </li>
@@ -27,8 +27,8 @@
                     <i class="fs-5 bi-book"></i><span class="ms-1 d-none d-sm-inline">Books</span>
                 </a>
                 <ul class="dropdown-menu text-small shadow" aria-labelledby="dropdown">
-                    <li><a class="dropdown-item" href="#">New</a></li>
-                    <li><a class="dropdown-item" href="#">Search</a></li>                    
+                    <li><a class="dropdown-item" href="{% url 'newbook' %}">New</a></li>
+                    <li><a class="dropdown-item" href="{% url 'searchbook' %}">Search</a></li>                    
                 </ul>
             </li>            
             <li class="dropdown">
@@ -58,8 +58,10 @@
             <!-- toggler -->
             <button class="btn float-end" data-bs-toggle="offcanvas" data-bs-target="#offcanvas" role="button">
                 <i class="bi bi-arrow-right-square-fill fs-3" data-bs-toggle="offcanvas" data-bs-target="#offcanvas"></i>
-            </button>
-            Content..
+            </button>            
+            {% block section %}
+    
+            {% endblock %}
         </div>
     </div>
 </div> 

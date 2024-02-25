@@ -2,15 +2,48 @@ from django.db import models
 from django.core.exceptions import ValidationError
 
 # Create your models here.
+# The library stock is taken, purchase of books to be handled by accountant not librarian
 class Book(models.Model):
     title = models.CharField(max_length=100)
-    author = models.CharField(max_length=100)
-    quantity_total = models.IntegerField(default=0)
-    isbn = models.CharField(max_length=13, unique=True)  # Assuming ISBN-13 format
-    quantity_available = models.IntegerField(default=0)
+    author = models.CharField(max_length=100)    
+    isbn = models.CharField(max_length=13, unique=True)  # Assuming ISBN-13 format      
+    quantity_available = models.PositiveIntegerField(default=0)
+    quantity_total = models.PositiveIntegerField(default=0)
 
     def __str__(self):
         return f"{self.title} by {self.author}"
+
+class Purchases(models.Model):
+    title = models.CharField(max_length=100)
+    author = models.CharField(max_length=100)    
+    isbn = models.CharField(max_length=13)
+    quantity_purchased = models.PositiveIntegerField(default=0)
+    date = models.DateField(auto_now=True)
+
+    def __str__(self):
+        return f"Purchase of {self.quantity_purchased} {self.title} by {self.author} on {self.date}"
+
+    def save(self, *args, **kwargs):
+        # Check if a book with the provided ISBN exists
+        existing_book = Book.objects.filter(isbn=self.isbn).first()
+
+        if existing_book:
+            # If the book exists, update its quantity_available and quantity_total
+            existing_book.quantity_available += self.quantity_purchased
+            existing_book.quantity_total += self.quantity_purchased
+            existing_book.save()
+        else:
+            # If the book doesn't exist, create a new Book instance
+            new_book = Book.objects.create(
+                title=self.title,
+                author=self.author,
+                isbn=self.isbn,
+                quantity_available=self.quantity_purchased,
+                quantity_total=self.quantity_purchased
+            )
+            new_book.save()
+
+        super().save(*args, **kwargs)
     
 class Member(models.Model):
     name = models.CharField(max_length=100)

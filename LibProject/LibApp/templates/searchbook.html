@@ -1,0 +1,183 @@
+{% extends "lib_dashboard.html" %}
+
+{% block section %}
+
+<div class="container mt-4">
+  <div class="row justify-content-center">
+      <div class="col-md-6">
+        <div class="input-group mb-3">
+          <div class="input-group-text p-0">
+            <select id="searchSelect" class="form-select form-select-lg shadow-none bg-light border-0">
+              <option value="title">Title</option>
+              <option value="author">Author</option>
+              <option value="isbn">ISBN</option>                
+            </select>
+          </div>
+          <input id="searchInput" type="text" class="form-control" placeholder="Enter book title...">
+          <button id="searchButton" class="input-group-text shadow-none px-4 btn-success">
+            <i class="bi bi-search me-2"></i> Search
+          </button>
+      </div>
+  </div> 
+</div>
+
+<div id="noResultsAlert" class="alert alert-warning" style="display: none;">
+    No results found.
+</div>
+
+<div id="searchResults" class="mt-4"></div>
+
+<script>
+  // Get CSRF token
+  var csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+  document.getElementById("searchSelect").addEventListener("change", function() {
+      var selectedOption = this.value;
+      var placeholderText = "";
+      switch(selectedOption) {
+          case "title":
+              placeholderText = "Enter book title...";
+              break;
+          case "author":
+              placeholderText = "Enter author name...";
+              break;
+          case "isbn":
+              placeholderText = "Enter book ISBN...";
+              break;
+          default:
+              placeholderText = "Enter search keyword...";
+      }
+      document.getElementById("searchInput").placeholder = placeholderText;
+  });
+
+  document.getElementById("searchButton").addEventListener("click", function() {
+      var searchQuery = document.getElementById("searchInput").value;
+      var searchField = document.getElementById("searchSelect").value;      
+
+      // Make an AJAX request to the search endpoint
+      var xhr = new XMLHttpRequest();
+      xhr.open("POST", "/search_for_book/", true);
+      xhr.setRequestHeader("Content-Type", "application/json");
+      xhr.setRequestHeader("X-CSRFToken", csrftoken);  // Set CSRF token
+
+      xhr.onreadystatechange = function () {
+          if (xhr.readyState === 4 && xhr.status === 200) {
+              var response = JSON.parse(xhr.responseText);
+              displaySearchResults(response.results);
+          }
+      };
+
+      var data = JSON.stringify({q: searchQuery, field: searchField});
+      xhr.send(data);
+  });
+
+  function displaySearchResults(results) {
+    var searchResultsDiv = document.getElementById("searchResults");
+    searchResultsDiv.innerHTML = ''; // Clear previous results
+
+    if (results.length === 0) {
+        document.getElementById("noResultsAlert").style.display = "block";
+        return;
+    }
+
+    document.getElementById("noResultsAlert").style.display = "none";
+
+    results.forEach(function(book) {
+        var bookDiv = document.createElement("div");
+        var bookId = book.id; // Get the book's ID
+        bookDiv.id = "bookDiv_" + bookId; // Set the id attribute using the book's ID
+        bookDiv.classList.add("row", "align-items-center", "mb-3"); // Use Bootstrap row class with margin-bottom and align-items-center for vertical alignment
+
+        var titlePara = document.createElement("p");        
+        titlePara.textContent = "Title: " + book.title;
+        titlePara.classList.add("col"); // Use Bootstrap column class
+
+        var authorPara = document.createElement("p");
+        authorPara.textContent = "Author: " + book.author;
+        authorPara.classList.add("col"); // Use Bootstrap column class
+
+        var isbnPara = document.createElement("p");
+        isbnPara.textContent = "ISBN: " + book.isbn;
+        isbnPara.classList.add("col"); // Use Bootstrap column class
+
+        var buttonsDiv = document.createElement("div");
+        buttonsDiv.classList.add("col", "d-flex", "justify-content-end"); // Use Bootstrap column class and flexbox utilities
+
+        var editButton = document.createElement("button");
+        editButton.textContent = "Edit";
+        editButton.classList.add("btn", "btn-primary", "me-2"); // Use Bootstrap button classes
+        editButton.addEventListener("click", function() {
+            // Call the function to handle editing
+            editBook(book);
+        });
+
+        var deleteButton = document.createElement("button");
+        deleteButton.textContent = "Delete";
+        deleteButton.classList.add("btn", "btn-danger"); // Use Bootstrap button classes
+        deleteButton.addEventListener("click", function() {
+            // Call the function to handle deleting
+            deleteBook(book.id, bookDiv, searchResultsDiv); // Pass searchResultsDiv as an argument
+        });
+
+        var hr = document.createElement("hr"); // Create a horizontal line element
+
+        // Append buttons to buttonsDiv
+        buttonsDiv.appendChild(editButton);
+        buttonsDiv.appendChild(deleteButton);
+
+        // Append elements to bookDiv
+        bookDiv.appendChild(titlePara);
+        bookDiv.appendChild(authorPara);
+        bookDiv.appendChild(isbnPara);
+        bookDiv.appendChild(buttonsDiv);
+
+        // Append the horizontal line after bookDiv
+        searchResultsDiv.appendChild(bookDiv);
+        searchResultsDiv.appendChild(hr);
+    });
+}
+
+// Function to handle editing of a book
+function editBook(book) {
+  // Redirect to the edit URL with the book ID
+  window.location.href = "/edit_book/" + book.id + "/";
+}
+
+// Function to handle deletion of a book
+function deleteBook(bookId, bookDiv, searchResultsDiv) { // Add searchResultsDiv as a parameter
+  // Send an AJAX request to delete the book
+  fetch(`/delete_book/${bookId}/`, {
+      method: 'DELETE',
+      headers: {
+          'X-CSRFToken': csrftoken,
+      }
+  })
+  .then(response => {
+      if (response.ok) {            
+          // Book deletion was successful
+          // Replace the deleted row with a success notification
+          var notification = document.createElement("div");
+          notification.classList.add("alert", "alert-success");
+          notification.textContent = "Book successfully deleted.";
+          searchResultsDiv.replaceChild(notification, bookDiv); // Use searchResultsDiv here
+
+          // Automatically remove the notification after 3 seconds
+          setTimeout(function() {
+              searchResultsDiv.removeChild(notification);
+          }, 3000);
+      } else {
+          // Handle error response from the server
+          console.error('Book deletion failed:', response.statusText);
+      }
+  })
+  .catch(error => {
+      console.error('Error:', error);
+  });
+}
+</script>
+
+{% block extra_content %}
+
+{% endblock %}
+
+{% endblock %}
