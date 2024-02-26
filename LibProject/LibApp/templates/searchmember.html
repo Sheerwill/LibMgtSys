@@ -1,0 +1,183 @@
+{% extends "lib_dashboard.html" %}
+
+{% block section %}
+
+<div class="container mt-4">
+  <div class="row justify-content-center">
+      <div class="col-md-6">
+        <div class="input-group mb-3">
+          <div class="input-group-text p-0">
+            <select id="searchSelect" class="form-select form-select-lg shadow-none bg-light border-0">
+              <option value="name">Name</option>
+              <option value="email">Email</option>
+              <option value="member_id">Member ID</option>                
+            </select>
+          </div>
+          <input id="searchInput" type="text" class="form-control" placeholder="Enter member's name...">
+          <button id="searchButton" class="input-group-text shadow-none px-4 btn-success">
+            <i class="bi bi-search me-2"></i> Search
+          </button>
+      </div>
+  </div> 
+</div>
+
+<div id="noResultsAlert" class="alert alert-warning" style="display: none;">
+    No results found.
+</div>
+
+<div id="searchResults" class="mt-4"></div>
+
+<script>
+  // Get CSRF token
+  var csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+  document.getElementById("searchSelect").addEventListener("change", function() {
+      var selectedOption = this.value;
+      var placeholderText = "";
+      switch(selectedOption) {
+          case "name":
+              placeholderText = "Enter member's name...";
+              break;
+          case "email":
+              placeholderText = "Enter member's email...";
+              break;
+          case "member_id":
+              placeholderText = "Enter member ID...";
+              break;
+          default:
+              placeholderText = "Enter search keyword...";
+      }
+      document.getElementById("searchInput").placeholder = placeholderText;
+  });
+
+  document.getElementById("searchButton").addEventListener("click", function() {
+      var searchQuery = document.getElementById("searchInput").value;
+      var searchField = document.getElementById("searchSelect").value;      
+
+      // Make an AJAX request to the search endpoint
+      var xhr = new XMLHttpRequest();
+      xhr.open("POST", "/search_for_member/", true); // Update the endpoint to search_for_member
+      xhr.setRequestHeader("Content-Type", "application/json");
+      xhr.setRequestHeader("X-CSRFToken", csrftoken);  // Set CSRF token
+
+      xhr.onreadystatechange = function () {
+          if (xhr.readyState === 4 && xhr.status === 200) {
+              var response = JSON.parse(xhr.responseText);
+              displaySearchResults(response.results);
+          }
+      };
+
+      var data = JSON.stringify({q: searchQuery, field: searchField});
+      xhr.send(data);
+  });
+
+  function displaySearchResults(results) {
+    var searchResultsDiv = document.getElementById("searchResults");
+    searchResultsDiv.innerHTML = ''; // Clear previous results
+
+    if (results.length === 0) {
+        document.getElementById("noResultsAlert").style.display = "block";
+        return;
+    }
+
+    document.getElementById("noResultsAlert").style.display = "none";
+
+    results.forEach(function(member) { // Update variable name and property names accordingly
+        var memberDiv = document.createElement("div"); // Update variable name accordingly
+        var memberId = member.id; // Get the member's ID
+        memberDiv.id = "memberDiv_" + memberId; // Set the id attribute using the member's ID
+        memberDiv.classList.add("row", "align-items-center", "mb-3"); // Use Bootstrap row class with margin-bottom and align-items-center for vertical alignment
+
+        var namePara = document.createElement("p");        
+        namePara.textContent = "Name: " + member.name; // Update property name accordingly
+        namePara.classList.add("col"); // Use Bootstrap column class
+
+        var emailPara = document.createElement("p"); // Update variable name accordingly
+        emailPara.textContent = "Email: " + member.email; // Update property name accordingly
+        emailPara.classList.add("col"); // Use Bootstrap column class
+
+        var memberIdPara = document.createElement("p"); // Update variable name accordingly
+        memberIdPara.textContent = "Member ID: " + member.member_id; // Update property name accordingly
+        memberIdPara.classList.add("col"); // Use Bootstrap column class
+
+        var buttonsDiv = document.createElement("div");
+        buttonsDiv.classList.add("col", "d-flex", "justify-content-end"); // Use Bootstrap column class and flexbox utilities
+
+        var editButton = document.createElement("button");
+        editButton.textContent = "Edit";
+        editButton.classList.add("btn", "btn-primary", "me-2"); // Use Bootstrap button classes
+        editButton.addEventListener("click", function() {
+            // Call the function to handle editing
+            editMember(member);
+        });
+
+        var deleteButton = document.createElement("button");
+        deleteButton.textContent = "Delete";
+        deleteButton.classList.add("btn", "btn-danger"); // Use Bootstrap button classes
+        deleteButton.addEventListener("click", function() {
+            // Call the function to handle deleting
+            deleteMember(member.id, memberDiv, searchResultsDiv); // Pass searchResultsDiv as an argument
+        });
+
+        var hr = document.createElement("hr"); // Create a horizontal line element
+
+        // Append buttons to buttonsDiv
+        buttonsDiv.appendChild(editButton);
+        buttonsDiv.appendChild(deleteButton);
+
+        // Append elements to memberDiv
+        memberDiv.appendChild(namePara);
+        memberDiv.appendChild(emailPara);
+        memberDiv.appendChild(memberIdPara);
+        memberDiv.appendChild(buttonsDiv);
+
+        // Append the horizontal line after memberDiv
+        searchResultsDiv.appendChild(memberDiv);
+        searchResultsDiv.appendChild(hr);
+    });
+}
+
+// Function to handle editing of a member
+function editMember(member) {
+  // Redirect to the edit URL with the member ID
+  window.location.href = "/edit_member/" + member.id + "/";
+}
+
+// Function to handle deletion of a member
+function deleteMember(memberId, memberDiv, searchResultsDiv) { // Add searchResultsDiv as a parameter
+  // Send an AJAX request to delete the member
+  fetch(`/delete_member/${memberId}/`, {
+      method: 'DELETE',
+      headers: {
+          'X-CSRFToken': csrftoken,
+      }
+  })
+  .then(response => {
+      if (response.ok) {            
+          // Member deletion was successful
+          // Replace the deleted row with a success notification
+          var notification = document.createElement("div");
+          notification.classList.add("alert", "alert-success");
+          notification.textContent = "Member successfully deleted.";
+          searchResultsDiv.replaceChild(notification, memberDiv); // Use searchResultsDiv here
+
+          // Automatically remove the notification after 3 seconds
+          setTimeout(function() {
+              searchResultsDiv.removeChild(notification);
+          }, 3000);
+      } else {
+          // Handle error response from the server
+          console.error('Member deletion failed:', response.statusText);
+      }
+  })
+  .catch(error => {
+      console.error('Error:', error);
+  });
+}
+</script>
+
+{% block extra_content %}
+
+{% endblock %}
+
+{% endblock %}

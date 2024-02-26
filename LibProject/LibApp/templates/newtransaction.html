@@ -1,0 +1,48 @@
+{% extends "lib_dashboard.html" %}
+
+{% block section %}
+
+<body class="text-center">
+    <div class="container">               
+
+        <form id="registration-form" method="post" class="form-signin">
+            <h1 class="display-4 text-primary mb-4">Register New Transaction</h1>
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button class="btn btn-lg btn-primary" type="submit">Submit</button>
+        </form>
+
+        <div id="success-message" class="alert alert-success" role="alert" style="display: none; margin-top: 10px;">
+            Congratulations! You have successfully registered the transaction.
+        </div>            
+    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var form = document.getElementById("registration-form");
+            var successMessage = document.getElementById("success-message");            
+    
+            form.addEventListener("submit", function (e) {
+                e.preventDefault();
+                
+                // Send an AJAX request to the server
+                fetch('http://127.0.0.1:8000/newbook/', {
+                    method: 'POST',
+                    body: new FormData(form),
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Form submission was successful
+                        form.style.display = "none";
+                        successMessage.style.display = "block";                        
+                    }                    
+                });
+            });
+        });
+    </script>
+</body>
+{% endblock %}
+

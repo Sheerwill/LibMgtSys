@@ -4,10 +4,10 @@ from django.contrib.auth.decorators import login_required
 from django.urls import reverse_lazy
 from django.contrib.auth.models import User
 from django.contrib.messages import error
-from .forms import SignupForm, PurchasesForm, BooksForm
+from .forms import SignupForm, PurchasesForm, BooksForm, MembersForm
 from django.contrib.auth import login, authenticate
 from django.http import JsonResponse
-from . models import Purchases, Book
+from . models import Purchases, Book, Member
 import json
 
 # Create your views here.
@@ -113,6 +113,72 @@ def delete_book(request, book_id):
     
     # Delete the book
     book.delete()
+    
+    # Return a success response
+    return JsonResponse({'success': True})
+
+def newmember(request):
+    if request.method == 'POST':
+        form = MembersForm(request.POST)
+        if form.is_valid():
+            form.save() 
+            return JsonResponse({'success': True})
+        else:
+            # Form is not valid, return 'false'
+            return JsonResponse({'success': False})
+    else:
+        form = MembersForm()
+
+    return render(request, 'newmember.html', {'form': form})
+
+def search_member(request):
+    return render(request, 'searchmember.html')
+
+def search_for_member(request):
+    if request.method == 'POST':
+        # Get the data from the request body
+        data = json.loads(request.body.decode("utf-8"))
+        search_query = data.get('q', '')
+        search_field = data.get('field', 'name')
+
+        # Determine the field to search based on the selected option
+        if search_field == 'name':
+            search_results = Member.objects.filter(name__icontains=search_query)
+        elif search_field == 'email':
+            search_results = Member.objects.filter(email__icontains=search_query)
+        elif search_field == 'member_id':
+            search_results = Member.objects.filter(member_id__icontains=search_query)
+        else:
+            # If the selected field is not recognized, return an empty queryset
+            search_results = Member.objects.none()
+
+        # Serialize the search results
+        serialized_results = [{'id': member.id, 'name': member.name, 'email': member.email, 'member_id': member.member_id} for member in search_results]
+
+        return JsonResponse({'results': serialized_results})
+    else:
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+
+def edit_member(request, member_id):
+    member = get_object_or_404(Member, pk=member_id)
+    
+    if request.method == 'POST':
+        form = MembersForm(request.POST, instance=member)
+        if form.is_valid():
+            form.save()
+            # Redirect to a success page or do something else
+    else:
+        form = MembersForm(instance=member)
+    
+    return render(request, 'editmember.html', {'form': form})
+
+def delete_member(request, member_id):
+    # Get the book object
+    member = get_object_or_404(Member, pk=member_id)
+    
+    # Delete the book
+    member.delete()
     
     # Return a success response
     return JsonResponse({'success': True})
