@@ -100,6 +100,10 @@
         memberIdPara.textContent = "Member ID: " + member.member_id; // Update property name accordingly
         memberIdPara.classList.add("col"); // Use Bootstrap column class
 
+        var debtPara = document.createElement("p"); // Update variable debt accordingly
+        debtPara.textContent = "Debt: " + member.debt; // Update property debt accordingly
+        debtPara.classList.add("col"); // Use Bootstrap column class
+
         var buttonsDiv = document.createElement("div");
         buttonsDiv.classList.add("col", "d-flex", "justify-content-end"); // Use Bootstrap column class and flexbox utilities
 
@@ -129,6 +133,7 @@
         memberDiv.appendChild(namePara);
         memberDiv.appendChild(emailPara);
         memberDiv.appendChild(memberIdPara);
+        memberDiv.appendChild(debtPara);
         memberDiv.appendChild(buttonsDiv);
 
         // Append the horizontal line after memberDiv

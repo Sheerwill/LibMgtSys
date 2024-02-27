@@ -4,11 +4,12 @@ from django.contrib.auth.decorators import login_required
 from django.urls import reverse_lazy
 from django.contrib.auth.models import User
 from django.contrib.messages import error
-from .forms import SignupForm, PurchasesForm, BooksForm, MembersForm
+from .forms import SignupForm, PurchasesForm, BooksForm, MembersForm, TransactionsForm
 from django.contrib.auth import login, authenticate
 from django.http import JsonResponse
 from . models import Purchases, Book, Member
 import json
+from django.core.exceptions import ValidationError
 
 # Create your views here.
 class CustomLoginView(LoginView):
@@ -88,7 +89,9 @@ def search_for_book(request):
             search_results = Book.objects.none()
 
         # Serialize the search results
-        serialized_results = [{'id': book.id, 'title': book.title, 'author': book.author, 'isbn': book.isbn} for book in search_results]
+        serialized_results = [{'id': book.id, 'title': book.title, 'author': book.author,
+                                'isbn': book.isbn, 'quantity_available': book.quantity_available,
+                                } for book in search_results]
 
         return JsonResponse({'results': serialized_results})
     else:
@@ -153,7 +156,7 @@ def search_for_member(request):
             search_results = Member.objects.none()
 
         # Serialize the search results
-        serialized_results = [{'id': member.id, 'name': member.name, 'email': member.email, 'member_id': member.member_id} for member in search_results]
+        serialized_results = [{'id': member.id, 'name': member.name, 'email': member.email, 'member_id': member.member_id, 'debt': member.outstanding_debt} for member in search_results]
 
         return JsonResponse({'results': serialized_results})
     else:
@@ -182,3 +185,20 @@ def delete_member(request, member_id):
     
     # Return a success response
     return JsonResponse({'success': True})
+
+def newtransaction(request):
+    if request.method == 'POST':
+        form = TransactionsForm(request.POST)
+        if form.is_valid():
+            try:
+                form.save()
+                return JsonResponse({'success': True})
+            except ValidationError as e:
+                return JsonResponse({'success': False, 'error_message': str(e)})
+        else:
+            # Form is not valid, return 'false'
+            return JsonResponse({'success': False})
+    else:
+        form = TransactionsForm()
+
+    return render(request, 'newtransaction.html', {'form': form})

@@ -1,5 +1,7 @@
 from django.db import models
 from django.core.exceptions import ValidationError
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 # Create your models here.
 # The library stock is taken, purchase of books to be handled by accountant not librarian
@@ -66,27 +68,20 @@ class Transaction(models.Model):
     fee_charged = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     amount_paid = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
-    def clean(self):
-        super().clean()
-        if self.transaction_type == 'return':
-            member_outstanding_debt = self.member.outstanding_debt
-            new_outstanding_debt = member_outstanding_debt + (self.fee_charged - self.amount_paid)
-            if new_outstanding_debt > 500:
-                raise ValidationError(f"Member's outstanding debt cannot exceed KES 500.")
-
     def save(self, *args, **kwargs):
-        # Update quantity_available when issuing or returning a book
+        if self.member.outstanding_debt + self.fee_charged - self.amount_paid > 500:
+            raise ValidationError("Transaction cannot be saved. Outstanding debt cannot exceed 500.")
+        
+        super().save(*args, **kwargs)
+        
+        # Update outstanding_debt after saving the transaction
+        self.member.outstanding_debt += self.fee_charged - self.amount_paid
+        self.member.save()
+
+        # Adjust quantity_available based on transaction type
         if self.transaction_type == 'issue':
             self.book.quantity_available -= 1
-            self.book.save()
         elif self.transaction_type == 'return':
             self.book.quantity_available += 1
-            self.book.save()
-        # Call clean method before saving
-        self.clean()
-        super().save(*args, **kwargs)
-
-    def __str__(self):
-        return f"{self.transaction_type} - {self.book.title} - {self.member.name}"
-    
-
+        
+        self.book.save()

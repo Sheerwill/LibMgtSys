@@ -100,6 +100,10 @@
         isbnPara.textContent = "ISBN: " + book.isbn;
         isbnPara.classList.add("col"); // Use Bootstrap column class
 
+        var quantityAvailablePara = document.createElement("p");
+        quantityAvailablePara.textContent = "Quantity Available: " + book.quantity_available;
+        quantityAvailablePara.classList.add("col"); // Use Bootstrap column class
+
         var buttonsDiv = document.createElement("div");
         buttonsDiv.classList.add("col", "d-flex", "justify-content-end"); // Use Bootstrap column class and flexbox utilities
 
@@ -129,6 +133,7 @@
         bookDiv.appendChild(titlePara);
         bookDiv.appendChild(authorPara);
         bookDiv.appendChild(isbnPara);
+        bookDiv.appendChild(quantityAvailablePara);
         bookDiv.appendChild(buttonsDiv);
 
         // Append the horizontal line after bookDiv

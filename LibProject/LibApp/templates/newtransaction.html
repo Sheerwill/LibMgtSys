@@ -5,27 +5,36 @@
 <body class="text-center">
     <div class="container">               
 
+        <h1 id="register-heading" class="display-4 text-primary mb-4">Register New Transaction</h1>
+
+        <div id="success-message" class="alert alert-success" role="alert" style="display: none; margin-bottom: 10px;">
+            Congratulations! You have successfully registered the transaction.
+        </div>            
+
+        <!-- Floating Bootstrap Notification -->
+        <div id="notification" class="alert alert-danger" role="alert" style="display: none; margin-bottom: 10px;">
+            <!-- Error message will be displayed here -->
+        </div>            
+
         <form id="registration-form" method="post" class="form-signin">
-            <h1 class="display-4 text-primary mb-4">Register New Transaction</h1>
             {% csrf_token %}
             {{ form.as_p }}
             <button class="btn btn-lg btn-primary" type="submit">Submit</button>
         </form>
 
-        <div id="success-message" class="alert alert-success" role="alert" style="display: none; margin-top: 10px;">
-            Congratulations! You have successfully registered the transaction.
-        </div>            
     </div>
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             var form = document.getElementById("registration-form");
-            var successMessage = document.getElementById("success-message");            
-    
+            var registerHeading = document.getElementById("register-heading");
+            var notification = document.getElementById("notification");
+            var successMessage = document.getElementById("success-message");
+
             form.addEventListener("submit", function (e) {
                 e.preventDefault();
-                
+
                 // Send an AJAX request to the server
-                fetch('http://127.0.0.1:8000/newbook/', {
+                fetch('http://127.0.0.1:8000/newtransaction/', {
                     method: 'POST',
                     body: new FormData(form),
                     headers: {
@@ -37,12 +46,22 @@
                     if (data.success) {
                         // Form submission was successful
                         form.style.display = "none";
-                        successMessage.style.display = "block";                        
-                    }                    
+                        registerHeading.style.display = "none";
+                        successMessage.style.display = "block";
+                    } else {
+                        // Form submission failed, show error message
+                        var errorMessage = data.error_message || "An error occurred.";
+                        notification.innerHTML = errorMessage;
+                        notification.style.display = "block";
+
+                        // Hide the notification after 5 seconds
+                        setTimeout(function() {
+                            notification.style.display = "none";
+                        }, 5000);
+                    }
                 });
             });
         });
     </script>
 </body>
 {% endblock %}
-

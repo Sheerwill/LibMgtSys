@@ -3,7 +3,7 @@ from django.contrib.auth.views import LoginView
 from .views import (lib_dashboard_view, CustomPasswordResetView,
                      signup, newbook, search_book, search_for_book, edit_book,
                      delete_book, newmember, search_for_member, search_member,
-                      delete_member, edit_member)
+                      delete_member, edit_member, newtransaction)
 
 urlpatterns = [
     path('', LoginView.as_view(), name='login'),
@@ -21,4 +21,5 @@ urlpatterns = [
     path('search_for_member/', search_for_member, name='search_for_member'),
     path('edit_member/<int:member_id>/', edit_member, name='edit_member'),
     path('delete_member/<int:member_id>/', delete_member, name='delete_member'),
+    path('newtransaction/', newtransaction, name='newtransaction'),
 ]
