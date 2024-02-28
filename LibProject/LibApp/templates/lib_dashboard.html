@@ -60,6 +60,48 @@
                 <i class="bi bi-arrow-right-square-fill fs-3" data-bs-toggle="offcanvas" data-bs-target="#offcanvas"></i>
             </button>            
             {% block section %}
+            <!-- Gallery -->
+            <div class="row">
+                <div class="col-lg-4 col-md-12 mb-4 mb-lg-0">
+                {% load static %}  
+                        
+                <div class="position-relative">
+                    <img src="{% static 'images/sapiens.jpg' %}" class="w-100 shadow-1-strong rounded mb-4" alt="Sapiens">
+                    <span class="badge bg-info position-absolute top-0 start-0 m-2">Non-fiction</span>
+                </div>
+                
+            
+                <div class="position-relative">
+                    <img src="{% static 'images/12 rules.jpeg' %}" class="w-100 shadow-1-strong rounded mb-4" alt="12 rules">
+                    <span class="badge bg-info position-absolute top-0 start-0 m-2">Self-help</span>
+                </div>
+                </div>
+            
+                <div class="col-lg-4 mb-4 mb-lg-0">
+                    <div class="position-relative">
+                        <img src="{% static 'images/Da Vinci Code.jpg' %}" class="w-100 shadow-1-strong rounded mb-4" alt="Da Vinci Code">
+                        <span class="badge bg-info position-absolute top-0 start-0 m-2">Mystery/Thriller</span>
+                    </div>
+            
+                    <div class="position-relative">
+                        <img src="{% static 'images/The Past is Rising.jpg' %}" class="w-100 shadow-1-strong rounded mb-4" alt="The Past is Rising">
+                        <span class="badge bg-info position-absolute top-0 start-0 m-2">Fantasy</span>
+                    </div>
+                </div>
+            
+                <div class="col-lg-4 mb-4 mb-lg-0">
+                    <div class="position-relative">
+                        <img src="{% static 'images/On the Origin of Species.webp' %}" class="w-100 shadow-1-strong rounded mb-4" alt="On the Origin of Species">
+                        <span class="badge bg-info position-absolute top-0 start-0 m-2">Science</span>
+                    </div>
+            
+                    <div class="position-relative">
+                        <img src="{% static 'images/100yrs of Solitude.jpg' %}" class="w-100 shadow-1-strong rounded mb-4" alt="!00yrs of Solitude">
+                        <span class="badge bg-info position-absolute top-0 start-0 m-2">Fiction</span>
+                    </div>
+                </div>
+            </div>
+            <!-- Gallery -->
     
             {% endblock %}
         </div>
