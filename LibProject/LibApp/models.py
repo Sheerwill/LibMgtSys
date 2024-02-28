@@ -69,14 +69,16 @@ class Transaction(models.Model):
     amount_paid = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
     def save(self, *args, **kwargs):
-        if self.member.outstanding_debt + self.fee_charged - self.amount_paid > 500:
-            raise ValidationError("Transaction cannot be saved. Outstanding debt cannot exceed 500.")
+        if self.transaction_type == 'issue':
+            if self.member.outstanding_debt + self.fee_charged - self.amount_paid > 500:
+                raise ValidationError("Transaction cannot be saved. Outstanding debt cannot exceed 500.")
         
         super().save(*args, **kwargs)
         
-        # Update outstanding_debt after saving the transaction
-        self.member.outstanding_debt += self.fee_charged - self.amount_paid
-        self.member.save()
+        # Update outstanding_debt after saving the transaction if transaction type is 'issue'
+        if self.transaction_type == 'issue':
+            self.member.outstanding_debt += self.fee_charged - self.amount_paid
+            self.member.save()
 
         # Adjust quantity_available based on transaction type
         if self.transaction_type == 'issue':

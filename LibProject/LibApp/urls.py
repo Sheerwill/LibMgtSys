@@ -4,7 +4,7 @@ from .views import (lib_dashboard_view, CustomPasswordResetView,
                      signup, newbook, search_book, search_for_book, edit_book,
                      delete_book, newmember, search_for_member, search_member,
                       delete_member, edit_member, newtransaction, search_transaction,
-                      search_for_transaction, delete_transaction)
+                      search_for_transaction, delete_transaction, edit_transaction)
 
 urlpatterns = [
     path('', LoginView.as_view(), name='login'),
@@ -26,4 +26,5 @@ urlpatterns = [
     path('searchtransaction/', search_transaction, name='searchtransaction'),
     path('search_for_transaction/', search_for_transaction, name='search_for_transaction'),
     path('delete_transaction/<int:pk>/', delete_transaction, name='delete_transaction'),
+    path('edit_transaction/<int:pk>/', edit_transaction, name='edit_transaction'),
 ]

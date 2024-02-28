@@ -253,3 +253,27 @@ def delete_transaction(request, pk):
     
     # Return a success response
     return JsonResponse({'success': True})
+
+def edit_transaction(request, pk):
+    transaction = get_object_or_404(Transaction, pk=pk)
+    
+    if request.method == 'POST':
+        form = TransactionsForm(request.POST, instance=transaction)
+        if form.is_valid():
+            # Save the form to get the updated transaction data
+            updated_transaction = form.save(commit=False)
+            
+            # Calculate the change in outstanding debt
+            original_outstanding_debt = updated_transaction.member.outstanding_debt         
+            
+            # Update the outstanding debt
+            updated_transaction.member.outstanding_debt = original_outstanding_debt - updated_transaction.amount_paid            
+            updated_transaction.member.save()
+
+            # Save the updated transaction
+            updated_transaction.save()    
+        
+    else:
+        form = TransactionsForm(instance=transaction)
+    
+    return render(request, 'edittransaction.html', {'form': form})
