@@ -7,7 +7,7 @@ from django.contrib.messages import error
 from .forms import SignupForm, PurchasesForm, BooksForm, MembersForm, TransactionsForm
 from django.contrib.auth import login, authenticate
 from django.http import JsonResponse
-from . models import Purchases, Book, Member
+from . models import Purchases, Book, Member, Transaction
 import json
 from django.core.exceptions import ValidationError
 
@@ -202,3 +202,54 @@ def newtransaction(request):
         form = TransactionsForm()
 
     return render(request, 'newtransaction.html', {'form': form})
+
+def search_transaction(request):
+    return render(request, 'searchtransaction.html')
+
+def search_for_transaction(request):
+    if request.method == 'POST':
+        # Get the data from the request body
+        data = json.loads(request.body.decode("utf-8"))
+        search_query = data.get('q', '')
+        search_field = data.get('field', 'book')
+
+        # Initialize search results variable
+        search_results = []
+
+        # Determine the field to search based on the selected option
+        if search_field == 'book':
+            search_results = Transaction.objects.filter(book__isbn__icontains=search_query)
+        elif search_field == 'member':
+            search_results = Transaction.objects.filter(member__member_id__icontains=search_query)
+        elif search_field == 'transaction_type':
+            search_results = Transaction.objects.filter(transaction_type__icontains=search_query)
+        else:
+            # If the selected field is not recognized, return an empty list
+            pass
+
+        # Serialize the search results
+        serialized_results = []
+        for result in search_results:
+            serialized_results.append({
+                'id': result.id,
+                'book_title': result.book.title,
+                'member_name': result.member.name,
+                'transaction_type': result.transaction_type,
+                'transaction_date': result.transaction_date.strftime("%Y-%m-%d %H:%M:%S"),
+                'fee_charged': str(result.fee_charged),
+                'amount_paid': str(result.amount_paid)
+            })
+
+        return JsonResponse({'results': serialized_results})
+    else:
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    
+def delete_transaction(request, pk):
+    # Get the transaction object
+    transaction = get_object_or_404(Transaction, pk=pk)
+    
+    # Delete the transaction
+    transaction.delete()
+    
+    # Return a success response
+    return JsonResponse({'success': True})

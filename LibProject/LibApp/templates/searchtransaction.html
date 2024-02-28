@@ -1,0 +1,193 @@
+{% extends "lib_dashboard.html" %}
+
+{% block section %}
+
+<div class="container mt-4">
+  <div class="row justify-content-center">
+      <div class="col-md-6">
+        <div class="input-group mb-3">
+          <div class="input-group-text p-0">
+            <select id="searchSelect" class="form-select form-select-lg shadow-none bg-light border-0">
+              <option value="book">Book</option>
+              <option value="member">Member</option>
+              <option value="transaction_type">Transaction type</option>                
+            </select>
+          </div>
+          <input id="searchInput" type="text" class="form-control" placeholder="Enter Book's ISBN...">
+          <button id="searchButton" class="input-group-text shadow-none px-4 btn-success">
+            <i class="bi bi-search me-2"></i> Search
+          </button>
+      </div>
+  </div> 
+</div>
+
+<div id="noResultsAlert" class="alert alert-warning" style="display: none;">
+    No results found.
+</div>
+
+<div id="searchResults" class="mt-4"></div>
+
+<script>
+  // Get CSRF token
+  var csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+  document.getElementById("searchSelect").addEventListener("change", function() {
+      var selectedOption = this.value;
+      var placeholderText = "";
+      switch(selectedOption) {
+          case "book":
+              placeholderText = "Enter book's ISBN...";
+              break;
+          case "member":
+              placeholderText = "Enter member's ID...";
+              break;
+          case "transaction_type":
+              placeholderText = "Enter transaction type...";
+              break;
+          default:
+              placeholderText = "Enter search keyword...";
+      }
+      document.getElementById("searchInput").placeholder = placeholderText;
+  });
+
+  document.getElementById("searchButton").addEventListener("click", function() {
+      var searchQuery = document.getElementById("searchInput").value;
+      var searchField = document.getElementById("searchSelect").value;      
+
+      // Make an AJAX request to the search endpoint
+      var xhr = new XMLHttpRequest();
+      xhr.open("POST", "/search_for_transaction/", true); // Update the endpoint to search_for_transaction
+      xhr.setRequestHeader("Content-Type", "application/json");
+      xhr.setRequestHeader("X-CSRFToken", csrftoken);  // Set CSRF token
+
+      xhr.onreadystatechange = function () {
+          if (xhr.readyState === 4 && xhr.status === 200) {
+              var response = JSON.parse(xhr.responseText);
+              displaySearchResults(response.results);
+          }
+      };
+
+      var data = JSON.stringify({q: searchQuery, field: searchField});
+      xhr.send(data);
+  });
+
+  function displaySearchResults(results) {
+    var searchResultsDiv = document.getElementById("searchResults");
+    searchResultsDiv.innerHTML = ''; // Clear previous results
+
+    if (results.length === 0) {
+        document.getElementById("noResultsAlert").style.display = "block";
+        return;
+    }
+
+    document.getElementById("noResultsAlert").style.display = "none";
+
+    results.forEach(function(transaction) { 
+        var transactionDiv = document.createElement("div"); 
+        transactionDiv.classList.add("row", "align-items-center", "mb-3");
+
+        var bookTitlePara = document.createElement("p");        
+        bookTitlePara.textContent = "Book Title: " + transaction.book_title;
+        bookTitlePara.classList.add("col");
+
+        var memberNamePara = document.createElement("p"); 
+        memberNamePara.textContent = "Member Name: " + transaction.member_name;
+        memberNamePara.classList.add("col");
+
+        var transactionTypePara = document.createElement("p"); 
+        transactionTypePara.textContent = "Transaction Type: " + transaction.transaction_type;
+        transactionTypePara.classList.add("col");
+
+        var transactionDatePara = document.createElement("p"); 
+        transactionDatePara.textContent = "Transaction Date: " + transaction.transaction_date;
+        transactionDatePara.classList.add("col");
+
+        var feeChargedPara = document.createElement("p"); 
+        feeChargedPara.textContent = "Fee Charged: " + transaction.fee_charged;
+        feeChargedPara.classList.add("col");
+
+        var amountPaidPara = document.createElement("p"); 
+        amountPaidPara.textContent = "Amount Paid: " + transaction.amount_paid;
+        amountPaidPara.classList.add("col");
+
+        var buttonsDiv = document.createElement("div");
+        buttonsDiv.classList.add("col", "d-flex", "justify-content-end");
+
+        var editButton = document.createElement("button");
+        editButton.textContent = "Edit";
+        editButton.classList.add("btn", "btn-primary", "me-2");
+        editButton.addEventListener("click", function() {
+            // Call the function to handle editing
+            editTransaction(transaction);
+        });
+
+        var deleteButton = document.createElement("button");
+        deleteButton.textContent = "Delete";
+        deleteButton.classList.add("btn", "btn-danger");
+        deleteButton.addEventListener("click", function() {
+            // Call the function to handle deleting
+            deleteTransaction(transaction.id, transactionDiv, searchResultsDiv);
+        });
+
+        var hr = document.createElement("hr");
+
+        buttonsDiv.appendChild(editButton);
+        buttonsDiv.appendChild(deleteButton);
+
+        transactionDiv.appendChild(bookTitlePara);
+        transactionDiv.appendChild(memberNamePara);
+        transactionDiv.appendChild(transactionTypePara);
+        transactionDiv.appendChild(transactionDatePara);
+        transactionDiv.appendChild(feeChargedPara);
+        transactionDiv.appendChild(amountPaidPara);
+        transactionDiv.appendChild(buttonsDiv);
+
+        searchResultsDiv.appendChild(transactionDiv);
+        searchResultsDiv.appendChild(hr);
+    });
+}
+
+// Function to handle editing of a transaction
+function editTransaction(transaction) {
+  // Redirect to the edit URL with the transaction ID
+  window.location.href = "/edit_transaction/" + transaction.id + "/";
+}
+
+// Function to handle deletion of a transaction
+function deleteTransaction(transactionId, transactionDiv, searchResultsDiv) {
+  // Send an AJAX request to delete the transaction
+  fetch(`/delete_transaction/${transactionId}/`, {
+      method: 'DELETE',
+      headers: {
+          'X-CSRFToken': csrftoken,
+      }
+  })
+  .then(response => {
+      if (response.ok) {            
+          // Transaction deletion was successful
+          // Replace the deleted row with a success notification
+          var notification = document.createElement("div");
+          notification.classList.add("alert", "alert-success");
+          notification.textContent = "Transaction successfully deleted.";
+          searchResultsDiv.replaceChild(notification, transactionDiv);
+
+          // Automatically remove the notification after 3 seconds
+          setTimeout(function() {
+              searchResultsDiv.removeChild(notification);
+          }, 3000);
+      } else {
+          // Handle error response from the server
+          console.error('Transaction deletion failed:', response.statusText);
+      }
+  })
+  .catch(error => {
+      console.error('Error:', error);
+  });
+}
+</script>
+
+{% block extra_content %}
+
+{% endblock %}
+
+{% endblock %}
