@@ -8,7 +8,7 @@ from django.dispatch import receiver
 class Book(models.Model):
     title = models.CharField(max_length=100)
     author = models.CharField(max_length=100)    
-    isbn = models.CharField(max_length=13, unique=True)  # Assuming ISBN-13 format      
+    isbn = models.CharField(max_length=17, unique=True)  # Assuming ISBN-13 format      
     quantity_available = models.PositiveIntegerField(default=0)
     quantity_total = models.PositiveIntegerField(default=0)
 
@@ -18,7 +18,7 @@ class Book(models.Model):
 class Purchases(models.Model):
     title = models.CharField(max_length=100)
     author = models.CharField(max_length=100)    
-    isbn = models.CharField(max_length=13)
+    isbn = models.CharField(max_length=17, unique=True)
     quantity_purchased = models.PositiveIntegerField(default=0)
     date = models.DateField(auto_now=True)
 
