@@ -17,8 +17,8 @@ class CustomLoginView(LoginView):
         # Call the parent class's form_valid method
         super().form_valid(form)
         
-        # Redirect to staff dashboard
-        return redirect('library')  
+        # Redirect to library dashboard
+        return redirect('lib_dashboard')  
     
 @login_required
 def lib_dashboard_view(request):    
@@ -33,7 +33,7 @@ class CustomPasswordResetView(PasswordResetView):
         email = form.cleaned_data['email']
         if not User.objects.filter(email=email).exists():
             # Email doesn't exist in the database
-            error(self.request, 'This email is not registered.')
+            #error(self.request, 'This email is not registered.')
             return self.render_to_response(
                 self.get_context_data(form=form, unregistered_email=True)
             )
