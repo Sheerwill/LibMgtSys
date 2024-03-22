@@ -25,9 +25,6 @@ class CustomLoginViewTestCase(TestCase):
         # Check if the redirect leads to the library dashboard
         self.assertEqual(response.url, reverse('lib_dashboard'))
 
-from django.test import TestCase, Client
-from django.urls import reverse
-
 class LibDashboardViewTestCase(TestCase):
     def setUp(self):
         self.client = Client()
