@@ -6,7 +6,7 @@ The Library Management System is a software application designed to streamline t
 
 - **Book Management**: Add, edit, and delete books from the library catalog. Includes features for specifying book details such as title, author, ISBN and quantity available.
 
-- **Members Management**: Maintain members records like contact details, and debt. Allows for CRUD operations on the mbers.
+- **Members Management**: Maintain members records like contact details, and debt. Allows for CRUD operations on the members.
 
 - **Transaction Management**: Keep track of books when issued and returned. You can create, edit and delete a transaction.
 
